@@ -96,9 +96,10 @@ async function send(){
  if(await put('orders','o'+Date.now()+Math.random().toString(36).slice(2,5),o,'Sipariş gönderilemedi. Lütfen personele haber verin.')){cart={};note='';sheet=0;sent=1;render()}}
 const PW='084ab3a3dee59fdcd30bfb23c597bde17c040e06dd0f5af8322d1b2f6b17f4bc';let unlocked=false;try{unlocked=sessionStorage.getItem('unl')==='1'}catch(e){}
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,'0')).join('');
-const vLock=()=>`<div class="lock"><h2>Giriş</h2><p>Kasa ve yönetim için giriş yapın.</p>${db?'<input id="em" type="email" autocomplete="username" placeholder="E-posta">':''}<input id="pw" type="password" autocomplete="current-password" placeholder="Şifre"><button class="btn big" data-a="unlock">Giriş yap</button><p id="pwe" class="err" role="alert"></p></div>`;
+const vLock=()=>`<div class="lock"><h2>Giriş</h2><p>Kasa ve yönetim için giriş yapın.</p>${db?'<input id="em" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="E-posta">':''}<input id="pw" type="password" autocomplete="current-password" placeholder="Şifre"><label class="sw" style="justify-content:center;margin:-6px 0 14px"><input type="checkbox" data-a="shw">Şifreyi göster</label><button class="btn big" data-a="unlock">Giriş yap</button><p id="pwe" class="err" role="alert"></p></div>`;
 const PWF=`<label class="fl">Giriş şifresini değiştir<input type="password" autocomplete="new-password" placeholder="Yeni şifre" data-f="pw"></label>`;
-async function unlock(){const v=$('#pw').value;if(db){try{await auth.signInWithEmailAndPassword($('#em').value.trim(),v)}catch(e){$('#pwe').textContent='E-posta veya şifre yanlış.'}return}if(await sha(v)===(info().pw||PW)){unlocked=true;try{sessionStorage.setItem('unl','1')}catch(e){}render()}else $('#pwe').textContent='Şifre yanlış.'}
+const authMsg=e=>{const c=(e&&e.code)||'';return /invalid-credential|wrong-password|user-not-found|invalid-email|missing-password/.test(c)?'E-posta veya şifre yanlış.':/operation-not-allowed/.test(c)?'Firebase’de Email/Password girişi açık değil.':/api-key/.test(c)?'API anahtarı geçersiz, firebase-config.js dosyasını kontrol edin.':/network/.test(c)?'Bağlantı kurulamadı, interneti kontrol edin.':'Giriş yapılamadı ('+c+').'};
+async function unlock(){const v=$('#pw').value;if(db){try{await auth.signInWithEmailAndPassword($('#em').value.trim(),v)}catch(e){$('#pwe').textContent=authMsg(e)}return}if(await sha(v)===(info().pw||PW)){unlocked=true;try{sessionStorage.setItem('unl','1')}catch(e){}render()}else $('#pwe').textContent='Şifre yanlış.'}
 const nav=c=>`<div class="top"><b class="lg">${c}</b><span class="row"><a href="#kasa" class="${c==='Kasa'?'on':''}">Kasa</a><a href="#admin" class="${c==='Yönetim'?'on':''}">Yönetim</a>${db?'<button class="ghost" data-a="out">Çıkış</button>':''}</span></div>`;
 const ago=ts=>{const m=Math.round((Date.now()-ts)/6e4);return m<1?'şimdi':m+' dk önce'};
 function vKasa(){
@@ -133,6 +134,7 @@ document.addEventListener('click',async e=>{
  else if(a==='send')send();
  else if(a==='unlock')unlock();
  else if(a==='out')auth.signOut();
+ else if(a==='shw')$('#pw').type=b.checked?'text':'password';
  else if(a==='fil'){fil=b.dataset.v;render()}
  else if(a==='tab'){tab=b.dataset.v;render()}
  else if(a==='adv'){const o=L.orders[id];put('orders',id,{...o,st:NX[o.st][0]})}
