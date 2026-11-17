@@ -4,6 +4,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <style>
 :root{--bg:#F2F4EE;--sf:#fff;--ink:#1C2A23;--mu:#5F6B64;--ac:#2D5A47;--on:#fff;--br:#7A5A1E;--ln:#D9DED4;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111916;--sf:#19231F;--ink:#ECF0E9;--mu:#9AA8A0;--ac:#7DB89B;--on:#10201A;--br:#CBA766;--ln:#2A3731;color-scheme:dark}}
@@ -44,6 +48,7 @@ h2{font:700 32px/1.1 'Cormorant Garamond',serif;margin:34px 0 4px;display:flex;a
 .qrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:16px}.qc{background:#fff;color:#1C2A23;border:1px solid var(--ln);border-radius:14px;padding:14px;text-align:center}.qc div{display:flex;justify-content:center;margin-bottom:6px}.qc img{max-width:100%}.qc a{color:inherit;font-weight:700}
 .demo{background:#8E6B2A26;border-bottom:1px solid var(--br);padding:8px 16px;font-size:13px;text-align:center}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}#toast.on{opacity:1}
+.lock{max-width:340px;margin:16vh auto 0;padding:0 22px;text-align:center}.lock h2{justify-content:center}.lock h2::after{display:none}.lock input{width:100%;background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:12px;margin:8px 0 14px;text-align:center}.err{color:#C0432F;min-height:1.4em}
 @media print{body>:not(#app){display:none}#app .top,#app .adm>:not(.qrs){display:none}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style></head><body><div id="app"></div><div id="modal"></div><div id="ed"></div><div id="toast" role="status"></div>
@@ -52,7 +57,7 @@ const $=s=>document.querySelector(s),h=s=>String(s??'').replace(/[&<>"']/g,c=>({
 const DEF=[['Sıcak İçecekler','Türk Kahvesi',85,'Közde pişmiş, yanında lokum'],['Sıcak İçecekler','Filtre Kahve',95,'Günün çekirdeği, taze demleme'],['Sıcak İçecekler','Latte',120,'Çift shot espresso, ipeksi süt'],['Sıcak İçecekler','Sıcak Çikolata',115,'Bitter çikolata, krema'],['Soğuk İçecekler','Cold Brew',125,'18 saat soğuk demlenmiş'],['Soğuk İçecekler','Ev Yapımı Limonata',100,'Nane ve taze limon'],['Tatlılar','San Sebastian',165,'Akışkan ortası, çıtır kenarı'],['Tatlılar','Fıstıklı Baklava',180,'Dört dilim, Antep fıstığı'],['Atıştırmalıklar','Avokadolu Tost',190,'Ekşi maya, poşe yumurta'],['Atıştırmalıklar','Peynirli Börek',130,'El açması, sıcak servis']].map((a,i)=>({id:'d'+i,cat:a[0],name:a[1],price:a[2],desc:a[3],on:true,o:i}));
 const DI={name:'Lale Kahve',about:'Mahallenin yavaş kahvesi. Her fincan sipariş üzerine hazırlanır.',hours:'Her gün 08.00–23.00',addr:'Bağdat Caddesi No: 12, Kadıköy',tel:'0216 555 01 23',wifi:'lalekahve2026',tables:10,url:''};
 const ST={new:'Yeni',prep:'Hazırlanıyor',done:'Teslim edildi',paid:'Ödendi'},NX={new:['prep','Hazırlamaya başla'],prep:['done','Teslim edildi'],done:['paid','Ödeme alındı']};
-let db=null,user=null,assets=null,booting=true,L={menu:{},cafe:{},orders:{}},got={},cart={},note='',sheet=0,sent=0,tab='urun',fil='act',seen=null,seeding=0,E=null,pick=0;
+let db=null,user=null,assets=null,auth=null,unsubO=null,booting=true,L={menu:{},cafe:{},orders:{}},got={},cart={},note='',sheet=0,sent=0,tab='urun',fil='act',seen=null,seeding=0,E=null,pick=0;
 const KEY='lale-demo';try{const v=JSON.parse(localStorage.getItem(KEY));if(v)L=v}catch(e){}
 const info=()=>({...DI,...(L.cafe.info||{})}),seeded=()=>!!(L.cafe.info&&L.cafe.info.seeded);
 const items=()=>{const a=Object.values(L.menu);return(a.length||seeded()?a:DEF).slice().sort((x,y)=>x.o-y.o)};
@@ -63,14 +68,15 @@ function persist(){if(!db)try{localStorage.setItem(KEY,JSON.stringify(L))}catch(
 async function put(c,id,d,msg){L[c][id]=d;persist();render();if(db)try{await db.collection(c).doc(id).set(d)}catch(e){toast(msg||'Kaydedilemedi. Yetkinizi kontrol edin.');return false}return true}
 async function del(c,id){delete L[c][id];persist();render();if(db)try{await db.collection(c).doc(id).delete()}catch(e){toast('Silinemedi.')}}
 function beep(){try{const a=new AudioContext(),o=a.createOscillator();o.connect(a.destination);o.frequency.value=880;o.start();o.stop(a.currentTime+.3)}catch(e){}}
-function sub(c){try{db.collection(c).onSnapshot(s=>{L[c]=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));got[c]=1;if(c==='orders'){const n=new Set(Object.keys(L.orders).filter(k=>L.orders[k].st==='new'));if(seen&&[...n].some(i=>!seen.has(i)))beep();seen=n}render()},()=>{got[c]=1;render()})}catch(e){got[c]=1}}
+function sub(c){try{return db.collection(c).onSnapshot(s=>{L[c]=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));got[c]=1;if(c==='orders'){const n=new Set(Object.keys(L.orders).filter(k=>L.orders[k].st==='new'));if(seen&&[...n].some(i=>!seen.has(i)))beep();seen=n}render()},()=>{got[c]=1;render()})}catch(e){got[c]=1}}
 function seed(){if(!db||!canManage()||!got.menu||!got.cafe||seeded()||Object.keys(L.menu).length||seeding)return;seeding=1;DEF.forEach(d=>put('menu',d.id,d));put('cafe','info',{...DI,seeded:true})}
-async function init(){
- try{if(window.claude)[db,user,assets]=await Promise.all(['db','user','assets'].map(n=>claude.use(n).catch(()=>null)))}catch(e){}
- booting=false;
- if(db){L={menu:{},cafe:{},orders:{}};sub('menu');sub('cafe');if(canManage())sub('orders')}
- else if(!L.cafe.info){L.menu=Object.fromEntries(DEF.map(d=>[d.id,d]));L.cafe.info={seeded:true};persist()}
- render()}
+function init(){
+ try{if(!window.FB_CONFIG||!FB_CONFIG.apiKey||/BURAYA/.test(FB_CONFIG.apiKey))throw 0;firebase.initializeApp(FB_CONFIG);db=firebase.firestore();auth=firebase.auth()}catch(e){db=null}
+ if(db){
+  unlocked=false;L={menu:{},cafe:{},orders:{}};sub('menu');sub('cafe');
+  auth.onAuthStateChanged(u=>{booting=false;user=u?{canEdit:()=>true}:null;unlocked=!!u;if(unsubO){unsubO();unsubO=null}
+   if(u){seen=null;unsubO=sub('orders')}else L.orders={};render()})
+ }else{booting=false;if(!L.cafe.info){L.menu=Object.fromEntries(DEF.map(d=>[d.id,d]));L.cafe.info={seeded:true};persist()}render()}}
 const vItem=(x,t)=>{const q=cart[x.id]||0;return`<article class="it"><div><h3>${h(x.name)}</h3><p>${h(x.desc)}</p><div class="pr"><b>${TL(x.price)}</b>${t?(q?`<span class="q"><button data-a="dec" data-id="${x.id}" aria-label="Azalt">−</button><span>${q}</span><button data-a="inc" data-id="${x.id}" aria-label="Artır">+</button></span>`:`<button class="btn" data-a="inc" data-id="${x.id}">Ekle</button>`):''}</div></div>${x.img?`<img src="${h(x.img)}" alt="${h(x.name)}">`:''}</article>`};
 function vMenu(t){
  const I=info(),its=items().filter(i=>i.on!==false),cats=[...new Set(its.map(i=>i.cat))];
@@ -88,7 +94,12 @@ async function send(){
  const t=route().t,its=items().filter(i=>cart[i.id]);if(!its.length||!t)return;
  const o={t,st:'new',ts:Date.now(),note:note.trim(),tot:its.reduce((a,i)=>a+cart[i.id]*i.price,0),l:its.map(i=>({n:i.name,p:i.price,q:cart[i.id]}))};
  if(await put('orders','o'+Date.now()+Math.random().toString(36).slice(2,5),o,'Sipariş gönderilemedi. Lütfen personele haber verin.')){cart={};note='';sheet=0;sent=1;render()}}
-const nav=c=>`<div class="top"><b class="lg">${c}</b><span class="row"><a href="#kasa" class="${c==='Kasa'?'on':''}">Kasa</a><a href="#admin" class="${c==='Yönetim'?'on':''}">Yönetim</a></span></div>`;
+const PW='084ab3a3dee59fdcd30bfb23c597bde17c040e06dd0f5af8322d1b2f6b17f4bc';let unlocked=false;try{unlocked=sessionStorage.getItem('unl')==='1'}catch(e){}
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,'0')).join('');
+const vLock=()=>`<div class="lock"><h2>Giriş</h2><p>Kasa ve yönetim için giriş yapın.</p>${db?'<input id="em" type="email" autocomplete="username" placeholder="E-posta">':''}<input id="pw" type="password" autocomplete="current-password" placeholder="Şifre"><button class="btn big" data-a="unlock">Giriş yap</button><p id="pwe" class="err" role="alert"></p></div>`;
+const PWF=`<label class="fl">Giriş şifresini değiştir<input type="password" autocomplete="new-password" placeholder="Yeni şifre" data-f="pw"></label>`;
+async function unlock(){const v=$('#pw').value;if(db){try{await auth.signInWithEmailAndPassword($('#em').value.trim(),v)}catch(e){$('#pwe').textContent='E-posta veya şifre yanlış.'}return}if(await sha(v)===(info().pw||PW)){unlocked=true;try{sessionStorage.setItem('unl','1')}catch(e){}render()}else $('#pwe').textContent='Şifre yanlış.'}
+const nav=c=>`<div class="top"><b class="lg">${c}</b><span class="row"><a href="#kasa" class="${c==='Kasa'?'on':''}">Kasa</a><a href="#admin" class="${c==='Yönetim'?'on':''}">Yönetim</a>${db?'<button class="ghost" data-a="out">Çıkış</button>':''}</span></div>`;
 const ago=ts=>{const m=Math.round((Date.now()-ts)/6e4);return m<1?'şimdi':m+' dk önce'};
 function vKasa(){
  const all=Object.entries(L.orders).map(([id,o])=>({id,...o})).sort((a,b)=>b.ts-a.ts),act=all.filter(o=>o.st!=='paid'),paid=all.filter(o=>o.st==='paid'),d=new Date().toDateString();
@@ -99,16 +110,16 @@ function vAdmin(){
  if(tab==='urun')b=`<button class="btn" data-a="edit" data-id="">Yeni ürün ekle</button>`+items().map(x=>`<div class="card row"><div class="th">${x.img?`<img src="${h(x.img)}" alt="">`:''}</div><div class="gr"><b>${h(x.name)}</b><br><small>${h(x.cat)}</small></div><input class="pi" type="number" min="0" value="${x.price}" data-f="price" data-id="${x.id}" aria-label="Fiyat"><label class="sw"><input type="checkbox" data-f="on" data-id="${x.id}" ${x.on!==false?'checked':''}>Satışta</label><button class="ghost" data-a="edit" data-id="${x.id}">Düzenle</button><button class="ghost" data-a="rm" data-id="${x.id}">Sil</button></div>`).join('');
  else if(tab==='bilgi')b=f('name','Kafe adı')+`<label class="fl">Hakkında<textarea rows="3" data-k="about">${h(I.about)}</textarea></label>`+f('hours','Çalışma saatleri')+f('addr','Adres')+f('tel','Telefon')+f('wifi','Wi‑Fi şifresi');
  else b=f('url','Site adresi (paylaştığınız bağlantıyı yapıştırın)')+f('tables','Masa sayısı','number')+`<button class="btn" data-a="print">QR kodlarını yazdır</button><div class="qrs">${Array.from({length:Math.min(60,+I.tables||1)},(_,i)=>`<div class="qc"><div data-q="${i+1}"></div><a href="#masa-${i+1}">Masa ${i+1}</a></div>`).join('')}</div>`;
- return nav('Yönetim')+`<div class="adm"><div class="row">${[['urun','Ürünler'],['bilgi','Kafe bilgisi'],['qr','Masa QR kodları']].map(([k,l])=>`<button class="chip ${tab===k?'on':''}" data-a="tab" data-v="${k}">${l}</button>`).join('')}</div>${b}</div>`}
+ return nav('Yönetim')+`<div class="adm"><div class="row">${[['urun','Ürünler'],['bilgi','Kafe bilgisi'],['qr','Masa QR kodları']].map(([k,l])=>`<button class="chip ${tab===k?'on':''}" data-a="tab" data-v="${k}">${l}</button>`).join('')}</div>${b}${tab==='bilgi'&&!db?PWF:''}</div>`}
 function drawQR(){if(!window.QRCode)return;const base=(info().url||location.href).split('#')[0];document.querySelectorAll('[data-q]').forEach(e=>{e.innerHTML='';new QRCode(e,{text:base+'#masa-'+e.dataset.q,width:132,height:132,colorDark:'#1C2A23',colorLight:'#ffffff'})})}
 function render(){
- const r=route(),y=scrollY,live=db&&!(got.menu&&got.cafe);let b;
+ if(!unlocked&&document.activeElement&&document.activeElement.id==='pw')return;const r=route(),y=scrollY,live=db&&!(got.menu&&got.cafe);let b;
  if(r.v==='menu')b=vMenu(r.t);
- else b=booting||live?'<p class="msg">Yükleniyor…</p>':!canManage()?'<p class="msg">Bu sayfa yalnızca kafe yetkililerine açıktır.</p>':r.v==='kasa'?vKasa():vAdmin();
+ else b=booting||live?'<p class="msg">Yükleniyor…</p>':!unlocked?vLock():r.v==='kasa'?vKasa():vAdmin();
  $('#app').innerHTML=(!booting&&!db?'<div class="demo">Demo modu: veriler paylaşılan bir veritabanına bağlı değil, yalnızca bu cihazda saklanır.</div>':'')+b;
  $('#modal').innerHTML=r.v==='menu'?vSheet():'';scrollTo(0,y);
- if(r.v==='admin'&&tab==='qr'&&canManage())drawQR();seed()}
-const shrink=f=>new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,640/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);c.toBlob(r,'image/jpeg',.82)};i.src=URL.createObjectURL(f)});
+ if(r.v==='admin'&&tab==='qr'&&canManage()&&unlocked)drawQR();seed()}
+const shrink=f=>new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,420/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);c.toBlob(r,'image/jpeg',.78)};i.src=URL.createObjectURL(f)});
 async function photo(f){const b=await shrink(f);if(assets)try{return(await assets.upload(b)).url}catch(e){}return new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result);x.readAsDataURL(b)})}
 const grab=()=>{const v=s=>$(s).value;E={...E,name:v('#e-n'),price:v('#e-p'),cat:v('#e-c'),desc:v('#e-d')}};
 function ed(){$('#ed').innerHTML=E?`<div class="ov"><div class="sh"><h2>${E.name?'Ürünü düzenle':'Yeni ürün'}</h2><label class="fl">Ürün adı<input id="e-n" value="${h(E.name)}"></label><label class="fl">Fiyat (₺)<input id="e-p" type="number" min="0" value="${h(E.price)}"></label><label class="fl">Kategori<input id="e-c" list="cl" value="${h(E.cat)}"></label><datalist id="cl">${[...new Set(items().map(i=>i.cat))].map(c=>`<option value="${h(c)}">`).join('')}</datalist><label class="fl">Açıklama<textarea id="e-d" rows="2">${h(E.desc)}</textarea></label><div class="row" style="margin-bottom:16px">${E.img?`<img class="pv" src="${h(E.img)}" alt="">`:''}<label class="ghost">Fotoğraf seç<input id="e-i" type="file" accept="image/*" hidden></label>${E.img?'<button class="ghost" data-a="rmimg">Kaldır</button>':''}</div><div class="row"><button class="btn" data-a="esave">Kaydet</button><button class="ghost" data-a="eclose">Vazgeç</button></div></div></div>`:''}
@@ -120,6 +131,8 @@ document.addEventListener('click',async e=>{
  else if(a==='close'||a==='bg'){sheet=0;sent=0;render()}
  else if(a==='go'){document.getElementById('c'+b.dataset.i).scrollIntoView({behavior:'smooth'})}
  else if(a==='send')send();
+ else if(a==='unlock')unlock();
+ else if(a==='out')auth.signOut();
  else if(a==='fil'){fil=b.dataset.v;render()}
  else if(a==='tab'){tab=b.dataset.v;render()}
  else if(a==='adv'){const o=L.orders[id];put('orders',id,{...o,st:NX[o.st][0]})}
@@ -135,11 +148,12 @@ document.addEventListener('change',async e=>{
  const t=e.target,d=t.dataset;
  if(d.f==='price'&&L.menu[d.id])put('menu',d.id,{...L.menu[d.id],price:Math.max(0,+t.value||0)});
  else if(d.f==='on'&&L.menu[d.id])put('menu',d.id,{...L.menu[d.id],on:t.checked});
+ else if(d.f==='pw'){if(t.value.length<4)return toast('Şifre en az 4 karakter olmalı.');put('cafe','info',{...info(),pw:await sha(t.value)});t.value='';toast('Şifre değiştirildi.')}
  else if(d.k)put('cafe','info',{...info(),[d.k]:d.k==='tables'?Math.max(1,Math.min(60,+t.value||1)):t.value});
  else if(t.id==='e-i'&&t.files[0]){grab();toast('Fotoğraf yükleniyor…');E.img=await photo(t.files[0]);ed()}
 });
-document.addEventListener('input',e=>{if(e.target.id==='note')note=e.target.value});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='pw'||e.target.id==='em'))unlock()});document.addEventListener('input',e=>{if(e.target.id==='note')note=e.target.value});
 addEventListener('hashchange',()=>{render();scrollTo(0,0)});
-setInterval(()=>{if(route().v==='kasa'&&!booting&&canManage())render()},30000);
+setInterval(()=>{if(route().v==='kasa'&&!booting&&canManage()&&unlocked)render()},30000);
 render();init();
 </script></body></html>
