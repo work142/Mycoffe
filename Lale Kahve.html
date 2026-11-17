@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lale Kahve</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#F2F4EE;--sf:#fff;--ink:#1C2A23;--mu:#5F6B64;--ac:#2D5A47;--on:#fff;--br:#7A5A1E;--ln:#D9DED4;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111916;--sf:#19231F;--ink:#ECF0E9;--mu:#9AA8A0;--ac:#7DB89B;--on:#10201A;--br:#CBA766;--ln:#2A3731;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111916;--sf:#19231F;--ink:#ECF0E9;--mu:#9AA8A0;--ac:#7DB89B;--on:#10201A;--br:#CBA766;--ln:#2A3731;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Manrope,system-ui,sans-serif;font-variant-numeric:lining-nums}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}:focus-visible{outline:2px solid var(--br);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto}
+.hero{background:#1E4033;color:#F3EFE4;padding:48px 22px 34px;border-radius:0 0 32px 32px}h1::after{content:"";display:block;width:48px;height:2px;background:#CBA766;margin-top:18px}
+h1{font:700 clamp(46px,14vw,72px)/.95 'Cormorant Garamond',serif;margin:0 0 12px}
+.hero p{margin:0 0 18px;max-width:34ch;color:#D5DCCF;font-size:15px}
+.tb{display:inline-block;background:#CBA766;color:#1E4033;border-radius:99px;padding:6px 20px;font:800 17px Manrope,system-ui,sans-serif;margin-bottom:20px}
+.inf{display:grid;gap:6px;font-size:14.5px;color:#DCE3D6;border-top:1px solid #ffffff2b;padding-top:16px}
+.cats{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--ln);overflow-x:auto;white-space:nowrap;padding:10px 16px;display:flex;gap:8px}
+.cats button,.chip,.ghost{background:var(--sf);border:1px solid var(--ln);border-radius:99px;padding:8px 16px;font-size:14.5px;font-weight:500}
+.chip.on{background:var(--ac);color:var(--on);border-color:var(--ac)}
+main{padding:4px 18px 120px}section{scroll-margin-top:56px}
+h2{font:700 32px/1.1 'Cormorant Garamond',serif;margin:34px 0 4px;display:flex;align-items:center;gap:16px}h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--br),transparent)}
+.it{display:flex;gap:14px;justify-content:space-between;padding:14px;margin:12px 0;background:var(--sf);border:1px solid var(--ln);border-radius:18px}.it>div{flex:1;min-width:0}
+.it h3{margin:0;font-size:17px}.it p{margin:4px 0 12px;color:var(--mu);font-size:14px;max-width:40ch}
+.it img{width:96px;height:96px;object-fit:cover;border-radius:14px;flex:none}
+.pr,.row{display:flex;align-items:center;gap:12px}.pr{justify-content:space-between}.pr b{font:800 19px Manrope,system-ui,sans-serif;color:var(--br)}
+.btn{background:var(--ac);color:var(--on);border:0;border-radius:99px;padding:9px 20px;font-weight:700}
+.q{display:inline-flex;align-items:center;border:1px solid var(--ac);border-radius:99px}.q button{width:34px;height:34px;border:0;background:none;font-size:18px}.q span{min-width:20px;text-align:center}
+.cb{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:696px;margin:auto;display:flex;justify-content:space-between;background:var(--ac);color:var(--on);border:0;border-radius:99px;padding:15px 24px;z-index:8;box-shadow:0 6px 24px #0004}
+.ov{position:fixed;inset:0;background:#000a;z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sh{background:var(--sf);width:100%;max-width:720px;border-radius:22px 22px 0 0;padding:20px 20px calc(22px + env(safe-area-inset-bottom,0px));max-height:88vh;overflow:auto}
+.sh h2{margin-top:0}.ln{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--ln)}.ln small{display:block;color:var(--mu)}
+.sh textarea,.fl input,.fl textarea{width:100%;background:var(--bg);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;margin:6px 0 12px}
+.big{width:100%;padding:14px;font-size:16px}.hint,.msg{color:var(--mu);text-align:center;padding:28px 0}.pick{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:16px 0 4px}.pick select{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:8px 12px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--ln);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.lg{font:700 28px 'Cormorant Garamond',serif}.top a{color:var(--mu);text-decoration:none;padding:5px 12px;border-radius:99px}.top a.on{background:var(--ac);color:var(--on)}
+.adm{padding:16px 18px 60px;max-width:900px;margin:auto}.sp{margin-left:auto}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:14px 16px;margin:12px 0}.card.new{border-color:var(--br);box-shadow:0 0 0 1px var(--br)}
+.card ul{margin:8px 0;padding-left:18px}.card .big{width:auto;font:800 22px Manrope,system-ui,sans-serif;padding:0}.card>.row:last-child b{font-size:20px}.tag{font-size:13px;color:var(--br);border:1px solid var(--br);border-radius:99px;padding:1px 10px}.nt{margin:0 0 8px;color:var(--mu)}
+.card.row{flex-wrap:wrap}.gr{flex:1;min-width:120px}.th{width:48px;height:48px;border-radius:10px;background:var(--bg);overflow:hidden}.th img,.pv{width:100%;height:100%;object-fit:cover}.pv{width:64px;height:64px;border-radius:12px}
+.pi{width:84px;background:var(--bg);border:1px solid var(--ln);border-radius:10px;padding:7px}.sw{font-size:13px;display:flex;gap:6px;align-items:center}
+.qrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:16px}.qc{background:#fff;color:#1C2A23;border:1px solid var(--ln);border-radius:14px;padding:14px;text-align:center}.qc div{display:flex;justify-content:center;margin-bottom:6px}.qc img{max-width:100%}.qc a{color:inherit;font-weight:700}
+.demo{background:#8E6B2A26;border-bottom:1px solid var(--br);padding:8px 16px;font-size:13px;text-align:center}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}#toast.on{opacity:1}
+@media print{body>:not(#app){display:none}#app .top,#app .adm>:not(.qrs){display:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style></head><body><div id="app"></div><div id="modal"></div><div id="ed"></div><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),TL=n=>(+n||0).toLocaleString('tr-TR')+' ₺';
+const DEF=[['Sıcak İçecekler','Türk Kahvesi',85,'Közde pişmiş, yanında lokum'],['Sıcak İçecekler','Filtre Kahve',95,'Günün çekirdeği, taze demleme'],['Sıcak İçecekler','Latte',120,'Çift shot espresso, ipeksi süt'],['Sıcak İçecekler','Sıcak Çikolata',115,'Bitter çikolata, krema'],['Soğuk İçecekler','Cold Brew',125,'18 saat soğuk demlenmiş'],['Soğuk İçecekler','Ev Yapımı Limonata',100,'Nane ve taze limon'],['Tatlılar','San Sebastian',165,'Akışkan ortası, çıtır kenarı'],['Tatlılar','Fıstıklı Baklava',180,'Dört dilim, Antep fıstığı'],['Atıştırmalıklar','Avokadolu Tost',190,'Ekşi maya, poşe yumurta'],['Atıştırmalıklar','Peynirli Börek',130,'El açması, sıcak servis']].map((a,i)=>({id:'d'+i,cat:a[0],name:a[1],price:a[2],desc:a[3],on:true,o:i}));
+const DI={name:'Lale Kahve',about:'Mahallenin yavaş kahvesi. Her fincan sipariş üzerine hazırlanır.',hours:'Her gün 08.00–23.00',addr:'Bağdat Caddesi No: 12, Kadıköy',tel:'0216 555 01 23',wifi:'lalekahve2026',tables:10,url:''};
+const ST={new:'Yeni',prep:'Hazırlanıyor',done:'Teslim edildi',paid:'Ödendi'},NX={new:['prep','Hazırlamaya başla'],prep:['done','Teslim edildi'],done:['paid','Ödeme alındı']};
+let db=null,user=null,assets=null,booting=true,L={menu:{},cafe:{},orders:{}},got={},cart={},note='',sheet=0,sent=0,tab='urun',fil='act',seen=null,seeding=0,E=null,pick=0;
+const KEY='lale-demo';try{const v=JSON.parse(localStorage.getItem(KEY));if(v)L=v}catch(e){}
+const info=()=>({...DI,...(L.cafe.info||{})}),seeded=()=>!!(L.cafe.info&&L.cafe.info.seeded);
+const items=()=>{const a=Object.values(L.menu);return(a.length||seeded()?a:DEF).slice().sort((x,y)=>x.o-y.o)};
+const canManage=()=>!db||!!(user&&user.canEdit());
+const route=()=>{const m=location.hash.slice(1);if(m==='kasa'||m==='admin')return{v:m};const t=/^masa-(\d{1,3})$/.exec(m);return{v:'menu',t:t?+t[1]:0}};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),3200)}
+function persist(){if(!db)try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}}
+async function put(c,id,d,msg){L[c][id]=d;persist();render();if(db)try{await db.collection(c).doc(id).set(d)}catch(e){toast(msg||'Kaydedilemedi. Yetkinizi kontrol edin.');return false}return true}
+async function del(c,id){delete L[c][id];persist();render();if(db)try{await db.collection(c).doc(id).delete()}catch(e){toast('Silinemedi.')}}
+function beep(){try{const a=new AudioContext(),o=a.createOscillator();o.connect(a.destination);o.frequency.value=880;o.start();o.stop(a.currentTime+.3)}catch(e){}}
+function sub(c){try{db.collection(c).onSnapshot(s=>{L[c]=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));got[c]=1;if(c==='orders'){const n=new Set(Object.keys(L.orders).filter(k=>L.orders[k].st==='new'));if(seen&&[...n].some(i=>!seen.has(i)))beep();seen=n}render()},()=>{got[c]=1;render()})}catch(e){got[c]=1}}
+function seed(){if(!db||!canManage()||!got.menu||!got.cafe||seeded()||Object.keys(L.menu).length||seeding)return;seeding=1;DEF.forEach(d=>put('menu',d.id,d));put('cafe','info',{...DI,seeded:true})}
+async function init(){
+ try{if(window.claude)[db,user,assets]=await Promise.all(['db','user','assets'].map(n=>claude.use(n).catch(()=>null)))}catch(e){}
+ booting=false;
+ if(db){L={menu:{},cafe:{},orders:{}};sub('menu');sub('cafe');if(canManage())sub('orders')}
+ else if(!L.cafe.info){L.menu=Object.fromEntries(DEF.map(d=>[d.id,d]));L.cafe.info={seeded:true};persist()}
+ render()}
+const vItem=(x,t)=>{const q=cart[x.id]||0;return`<article class="it"><div><h3>${h(x.name)}</h3><p>${h(x.desc)}</p><div class="pr"><b>${TL(x.price)}</b>${t?(q?`<span class="q"><button data-a="dec" data-id="${x.id}" aria-label="Azalt">−</button><span>${q}</span><button data-a="inc" data-id="${x.id}" aria-label="Artır">+</button></span>`:`<button class="btn" data-a="inc" data-id="${x.id}">Ekle</button>`):''}</div></div>${x.img?`<img src="${h(x.img)}" alt="${h(x.name)}">`:''}</article>`};
+function vMenu(t){
+ const I=info(),its=items().filter(i=>i.on!==false),cats=[...new Set(its.map(i=>i.cat))];
+ const n=Object.values(cart).reduce((a,b)=>a+b,0),tot=its.reduce((a,i)=>a+(cart[i.id]||0)*i.price,0);
+ return`<header class="hero"><div class="wrap">${t?`<span class="tb">Masa ${t}</span>`:''}<h1>${h(I.name)}</h1><p>${h(I.about)}</p><div class="inf"><span>${h(I.hours)}</span><span>${h(I.addr)}</span><span>${h(I.tel)}</span>${I.wifi?`<span>Wi‑Fi şifresi: ${h(I.wifi)}</span>`:''}</div></div></header>
+<nav class="cats">${cats.map((c,i)=>`<button data-a="go" data-i="${i}">${h(c)}</button>`).join('')}</nav>
+<main class="wrap">${cats.map((c,i)=>`<section id="c${i}"><h2>${h(c)}</h2>${its.filter(x=>x.cat===c).map(x=>vItem(x,t)).join('')}</section>`).join('')||'<p class="msg">Menü henüz hazır değil.</p>'}</main>
+${t&&n?`<button class="cb" data-a="cart"><span>${n} ürün</span><b>Sepeti gör, ${TL(tot)}</b></button>`:''}`}
+function vSheet(){
+ if(sent)return`<div class="ov"><div class="sh"><h2>Siparişiniz alındı</h2><p>Siparişiniz kasaya iletildi. Kısa süre içinde masanıza getireceğiz.</p><button class="btn big" data-a="close">Menüye dön</button></div></div>`;
+ if(!sheet)return'';
+ const its=items().filter(i=>cart[i.id]),tot=its.reduce((a,i)=>a+cart[i.id]*i.price,0);
+ return`<div class="ov" data-a="bg"><div class="sh"><h2>Sepetim</h2>${its.map(x=>`<div class="ln"><span>${h(x.name)}<small>${TL(x.price)}</small></span><span class="q"><button data-a="dec" data-id="${x.id}" aria-label="Azalt">−</button><span>${cart[x.id]}</span><button data-a="inc" data-id="${x.id}" aria-label="Artır">+</button></span></div>`).join('')}<textarea id="note" rows="2" placeholder="Sipariş notu (isteğe bağlı)">${h(note)}</textarea><button class="btn big" data-a="send">Siparişi gönder, ${TL(tot)}</button></div></div>`}
+async function send(){
+ const t=route().t,its=items().filter(i=>cart[i.id]);if(!its.length||!t)return;
+ const o={t,st:'new',ts:Date.now(),note:note.trim(),tot:its.reduce((a,i)=>a+cart[i.id]*i.price,0),l:its.map(i=>({n:i.name,p:i.price,q:cart[i.id]}))};
+ if(await put('orders','o'+Date.now()+Math.random().toString(36).slice(2,5),o,'Sipariş gönderilemedi. Lütfen personele haber verin.')){cart={};note='';sheet=0;sent=1;render()}}
+const nav=c=>`<div class="top"><b class="lg">${c}</b><span class="row"><a href="#kasa" class="${c==='Kasa'?'on':''}">Kasa</a><a href="#admin" class="${c==='Yönetim'?'on':''}">Yönetim</a></span></div>`;
+const ago=ts=>{const m=Math.round((Date.now()-ts)/6e4);return m<1?'şimdi':m+' dk önce'};
+function vKasa(){
+ const all=Object.entries(L.orders).map(([id,o])=>({id,...o})).sort((a,b)=>b.ts-a.ts),act=all.filter(o=>o.st!=='paid'),paid=all.filter(o=>o.st==='paid'),d=new Date().toDateString();
+ const sum=paid.filter(o=>new Date(o.ts).toDateString()===d).reduce((a,o)=>a+o.tot,0),list=fil==='act'?act:paid;
+ return nav('Kasa')+`<div class="adm"><div class="row"><button class="chip ${fil==='act'?'on':''}" data-a="fil" data-v="act">Aktif (${act.length})</button><button class="chip ${fil==='paid'?'on':''}" data-a="fil" data-v="paid">Ödenenler</button><span class="sp">Bugün: <b>${TL(sum)}</b></span></div>${list.map(o=>`<div class="card ${o.st==='new'?'new':''}"><div class="row"><b class="big">Masa ${o.t}</b><span class="tag">${ST[o.st]}</span><span class="sp">${ago(o.ts)}</span></div><ul>${o.l.map(x=>`<li>${x.q} × ${h(x.n)}</li>`).join('')}</ul>${o.note?`<p class="nt">Not: ${h(o.note)}</p>`:''}<div class="row"><b>${TL(o.tot)}</b>${o.st==='paid'?'':`<button class="ghost sp" data-a="cancel" data-id="${o.id}">İptal et</button>`}${NX[o.st]?`<button class="btn ${o.st==='paid'?'sp':''}" data-a="adv" data-id="${o.id}">${NX[o.st][1]}</button>`:''}</div></div>`).join('')||`<p class="msg">${fil==='act'?'Bekleyen sipariş yok.':'Henüz ödenen sipariş yok.'}</p>`}</div>`}
+function vAdmin(){
+ const I=info(),f=(k,l,t='text')=>`<label class="fl">${l}<input type="${t}" value="${h(I[k])}" data-k="${k}"></label>`;let b;
+ if(tab==='urun')b=`<button class="btn" data-a="edit" data-id="">Yeni ürün ekle</button>`+items().map(x=>`<div class="card row"><div class="th">${x.img?`<img src="${h(x.img)}" alt="">`:''}</div><div class="gr"><b>${h(x.name)}</b><br><small>${h(x.cat)}</small></div><input class="pi" type="number" min="0" value="${x.price}" data-f="price" data-id="${x.id}" aria-label="Fiyat"><label class="sw"><input type="checkbox" data-f="on" data-id="${x.id}" ${x.on!==false?'checked':''}>Satışta</label><button class="ghost" data-a="edit" data-id="${x.id}">Düzenle</button><button class="ghost" data-a="rm" data-id="${x.id}">Sil</button></div>`).join('');
+ else if(tab==='bilgi')b=f('name','Kafe adı')+`<label class="fl">Hakkında<textarea rows="3" data-k="about">${h(I.about)}</textarea></label>`+f('hours','Çalışma saatleri')+f('addr','Adres')+f('tel','Telefon')+f('wifi','Wi‑Fi şifresi');
+ else b=f('url','Site adresi (paylaştığınız bağlantıyı yapıştırın)')+f('tables','Masa sayısı','number')+`<button class="btn" data-a="print">QR kodlarını yazdır</button><div class="qrs">${Array.from({length:Math.min(60,+I.tables||1)},(_,i)=>`<div class="qc"><div data-q="${i+1}"></div><a href="#masa-${i+1}">Masa ${i+1}</a></div>`).join('')}</div>`;
+ return nav('Yönetim')+`<div class="adm"><div class="row">${[['urun','Ürünler'],['bilgi','Kafe bilgisi'],['qr','Masa QR kodları']].map(([k,l])=>`<button class="chip ${tab===k?'on':''}" data-a="tab" data-v="${k}">${l}</button>`).join('')}</div>${b}</div>`}
+function drawQR(){if(!window.QRCode)return;const base=(info().url||location.href).split('#')[0];document.querySelectorAll('[data-q]').forEach(e=>{e.innerHTML='';new QRCode(e,{text:base+'#masa-'+e.dataset.q,width:132,height:132,colorDark:'#1C2A23',colorLight:'#ffffff'})})}
+function render(){
+ const r=route(),y=scrollY,live=db&&!(got.menu&&got.cafe);let b;
+ if(r.v==='menu')b=vMenu(r.t);
+ else b=booting||live?'<p class="msg">Yükleniyor…</p>':!canManage()?'<p class="msg">Bu sayfa yalnızca kafe yetkililerine açıktır.</p>':r.v==='kasa'?vKasa():vAdmin();
+ $('#app').innerHTML=(!booting&&!db?'<div class="demo">Demo modu: veriler paylaşılan bir veritabanına bağlı değil, yalnızca bu cihazda saklanır.</div>':'')+b;
+ $('#modal').innerHTML=r.v==='menu'?vSheet():'';scrollTo(0,y);
+ if(r.v==='admin'&&tab==='qr'&&canManage())drawQR();seed()}
+const shrink=f=>new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,640/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);c.toBlob(r,'image/jpeg',.82)};i.src=URL.createObjectURL(f)});
+async function photo(f){const b=await shrink(f);if(assets)try{return(await assets.upload(b)).url}catch(e){}return new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result);x.readAsDataURL(b)})}
+const grab=()=>{const v=s=>$(s).value;E={...E,name:v('#e-n'),price:v('#e-p'),cat:v('#e-c'),desc:v('#e-d')}};
+function ed(){$('#ed').innerHTML=E?`<div class="ov"><div class="sh"><h2>${E.name?'Ürünü düzenle':'Yeni ürün'}</h2><label class="fl">Ürün adı<input id="e-n" value="${h(E.name)}"></label><label class="fl">Fiyat (₺)<input id="e-p" type="number" min="0" value="${h(E.price)}"></label><label class="fl">Kategori<input id="e-c" list="cl" value="${h(E.cat)}"></label><datalist id="cl">${[...new Set(items().map(i=>i.cat))].map(c=>`<option value="${h(c)}">`).join('')}</datalist><label class="fl">Açıklama<textarea id="e-d" rows="2">${h(E.desc)}</textarea></label><div class="row" style="margin-bottom:16px">${E.img?`<img class="pv" src="${h(E.img)}" alt="">`:''}<label class="ghost">Fotoğraf seç<input id="e-i" type="file" accept="image/*" hidden></label>${E.img?'<button class="ghost" data-a="rmimg">Kaldır</button>':''}</div><div class="row"><button class="btn" data-a="esave">Kaydet</button><button class="ghost" data-a="eclose">Vazgeç</button></div></div></div>`:''}
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id,n=$('#note');if(n)note=n.value;
+ if(a==='bg'&&e.target!==b)return;
+ if(a==='inc'||a==='dec'){cart[id]=Math.max(0,(cart[id]||0)+(a==='inc'?1:-1));if(!cart[id])delete cart[id];if(!Object.keys(cart).length)sheet=0;render()}
+ else if(a==='cart'){sheet=1;render()}
+ else if(a==='close'||a==='bg'){sheet=0;sent=0;render()}
+ else if(a==='go'){document.getElementById('c'+b.dataset.i).scrollIntoView({behavior:'smooth'})}
+ else if(a==='send')send();
+ else if(a==='fil'){fil=b.dataset.v;render()}
+ else if(a==='tab'){tab=b.dataset.v;render()}
+ else if(a==='adv'){const o=L.orders[id];put('orders',id,{...o,st:NX[o.st][0]})}
+ else if(a==='cancel'){del('orders',id);toast('Sipariş iptal edildi.')}
+ else if(a==='rm'){del('menu',id);toast('Ürün silindi.')}
+ else if(a==='edit'){const x=items().find(i=>i.id===id);E=x?{...x}:{id:'p'+Date.now(),name:'',price:'',cat:(items()[0]||{}).cat||'',desc:'',on:true,o:Date.now()};ed()}
+ else if(a==='rmimg'){grab();delete E.img;ed()}
+ else if(a==='eclose'){E=null;ed()}
+ else if(a==='esave'){grab();if(!E.name.trim()||E.price===''||!E.cat.trim())return toast('Ad, fiyat ve kategori gerekli.');await put('menu',E.id,{...E,name:E.name.trim(),cat:E.cat.trim(),price:+E.price});E=null;ed()}
+ else if(a==='print'){try{print()}catch(x){toast('Yazdırma açılamadı. QR kodlarının ekran görüntüsünü alabilirsiniz.')}}
+});
+document.addEventListener('change',async e=>{
+ const t=e.target,d=t.dataset;
+ if(d.f==='price'&&L.menu[d.id])put('menu',d.id,{...L.menu[d.id],price:Math.max(0,+t.value||0)});
+ else if(d.f==='on'&&L.menu[d.id])put('menu',d.id,{...L.menu[d.id],on:t.checked});
+ else if(d.k)put('cafe','info',{...info(),[d.k]:d.k==='tables'?Math.max(1,Math.min(60,+t.value||1)):t.value});
+ else if(t.id==='e-i'&&t.files[0]){grab();toast('Fotoğraf yükleniyor…');E.img=await photo(t.files[0]);ed()}
+});
+document.addEventListener('input',e=>{if(e.target.id==='note')note=e.target.value});
+addEventListener('hashchange',()=>{render();scrollTo(0,0)});
+setInterval(()=>{if(route().v==='kasa'&&!booting&&canManage())render()},30000);
+render();init();
+</script></body></html>
