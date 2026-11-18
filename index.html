@@ -67,8 +67,12 @@ function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clea
 function persist(){if(!db)try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}}
 async function put(c,id,d,msg){L[c][id]=d;persist();render();if(db)try{await db.collection(c).doc(id).set(d)}catch(e){toast(msg||'Kaydedilemedi. Yetkinizi kontrol edin.');return false}return true}
 async function del(c,id){delete L[c][id];persist();render();if(db)try{await db.collection(c).doc(id).delete()}catch(e){toast('Silinemedi.')}}
-function beep(){try{const a=new AudioContext(),o=a.createOscillator();o.connect(a.destination);o.frequency.value=880;o.start();o.stop(a.currentTime+.3)}catch(e){}}
-function sub(c){try{return db.collection(c).onSnapshot(s=>{L[c]=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));got[c]=1;if(c==='orders'){const n=new Set(Object.keys(L.orders).filter(k=>L.orders[k].st==='new'));if(seen&&[...n].some(i=>!seen.has(i)))beep();seen=n}render()},()=>{got[c]=1;render()})}catch(e){got[c]=1}}
+let AC=null,sndOn=false,wl=null;
+function chime(){if(!sndOn||!AC)return;try{if(AC.state==='suspended')AC.resume();[[988,0],[784,.28],[988,.56],[1319,.84]].forEach(([f,t])=>{const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+t;o.type='triangle';o.frequency.value=f;o.connect(g);g.connect(AC.destination);g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.7,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.45);o.start(s);o.stop(s+.5)})}catch(e){}}
+async function setSnd(on){sndOn=on;if(on){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();await AC.resume()}catch(e){}chime();try{wl=await navigator.wakeLock.request('screen')}catch(e){}}else{try{wl&&wl.release()}catch(e){}wl=null}render()}
+document.addEventListener('visibilitychange',async()=>{if(!document.hidden&&sndOn){try{if(AC)await AC.resume();wl=await navigator.wakeLock.request('screen')}catch(e){}}});
+setInterval(()=>{if(sndOn&&unlocked&&route().v==='kasa'&&Object.values(L.orders).some(o=>o.st==='new'))chime()},6000);
+function sub(c){try{return db.collection(c).onSnapshot(s=>{L[c]=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));got[c]=1;if(c==='orders'){const n=new Set(Object.keys(L.orders).filter(k=>L.orders[k].st==='new'));if(seen&&[...n].some(i=>!seen.has(i)))chime();seen=n}render()},()=>{got[c]=1;render()})}catch(e){got[c]=1}}
 function seed(){if(!db||!canManage()||!got.menu||!got.cafe||seeded()||Object.keys(L.menu).length||seeding)return;seeding=1;DEF.forEach(d=>put('menu',d.id,d));put('cafe','info',{...DI,seeded:true})}
 function init(){
  try{if(!window.FB_CONFIG||!FB_CONFIG.apiKey||/BURAYA/.test(FB_CONFIG.apiKey))throw 0;firebase.initializeApp(FB_CONFIG);db=firebase.firestore();auth=firebase.auth()}catch(e){db=null}
@@ -105,7 +109,7 @@ const ago=ts=>{const m=Math.round((Date.now()-ts)/6e4);return m<1?'şimdi':m+' d
 function vKasa(){
  const all=Object.entries(L.orders).map(([id,o])=>({id,...o})).sort((a,b)=>b.ts-a.ts),act=all.filter(o=>o.st!=='paid'),paid=all.filter(o=>o.st==='paid'),d=new Date().toDateString();
  const sum=paid.filter(o=>new Date(o.ts).toDateString()===d).reduce((a,o)=>a+o.tot,0),list=fil==='act'?act:paid;
- return nav('Kasa')+`<div class="adm"><div class="row"><button class="chip ${fil==='act'?'on':''}" data-a="fil" data-v="act">Aktif (${act.length})</button><button class="chip ${fil==='paid'?'on':''}" data-a="fil" data-v="paid">Ödenenler</button><span class="sp">Bugün: <b>${TL(sum)}</b></span></div>${list.map(o=>`<div class="card ${o.st==='new'?'new':''}"><div class="row"><b class="big">Masa ${o.t}</b><span class="tag">${ST[o.st]}</span><span class="sp">${ago(o.ts)}</span></div><ul>${o.l.map(x=>`<li>${x.q} × ${h(x.n)}</li>`).join('')}</ul>${o.note?`<p class="nt">Not: ${h(o.note)}</p>`:''}<div class="row"><b>${TL(o.tot)}</b>${o.st==='paid'?'':`<button class="ghost sp" data-a="cancel" data-id="${o.id}">İptal et</button>`}${NX[o.st]?`<button class="btn ${o.st==='paid'?'sp':''}" data-a="adv" data-id="${o.id}">${NX[o.st][1]}</button>`:''}</div></div>`).join('')||`<p class="msg">${fil==='act'?'Bekleyen sipariş yok.':'Henüz ödenen sipariş yok.'}</p>`}</div>`}
+ return nav('Kasa')+`<div class="adm">${sndOn?'':'<button class="btn big" data-a="snd" style="margin-bottom:12px">Sipariş sesini aç</button>'}<div class="row"><button class="chip ${fil==='act'?'on':''}" data-a="fil" data-v="act">Aktif (${act.length})</button><button class="chip ${fil==='paid'?'on':''}" data-a="fil" data-v="paid">Ödenenler</button>${sndOn?'<button class="chip on" data-a="snd">Ses açık</button>':''}<span class="sp">Bugün: <b>${TL(sum)}</b></span></div>${list.map(o=>`<div class="card ${o.st==='new'?'new':''}"><div class="row"><b class="big">Masa ${o.t}</b><span class="tag">${ST[o.st]}</span><span class="sp">${ago(o.ts)}</span></div><ul>${o.l.map(x=>`<li>${x.q} × ${h(x.n)}</li>`).join('')}</ul>${o.note?`<p class="nt">Not: ${h(o.note)}</p>`:''}<div class="row"><b>${TL(o.tot)}</b>${o.st==='paid'?'':`<button class="ghost sp" data-a="cancel" data-id="${o.id}">İptal et</button>`}${NX[o.st]?`<button class="btn ${o.st==='paid'?'sp':''}" data-a="adv" data-id="${o.id}">${NX[o.st][1]}</button>`:''}</div></div>`).join('')||`<p class="msg">${fil==='act'?'Bekleyen sipariş yok.':'Henüz ödenen sipariş yok.'}</p>`}</div>`}
 function vAdmin(){
  const I=info(),f=(k,l,t='text')=>`<label class="fl">${l}<input type="${t}" value="${h(I[k])}" data-k="${k}"></label>`;let b;
  if(tab==='urun')b=`<button class="btn" data-a="edit" data-id="">Yeni ürün ekle</button>`+items().map(x=>`<div class="card row"><div class="th">${x.img?`<img src="${h(x.img)}" alt="">`:''}</div><div class="gr"><b>${h(x.name)}</b><br><small>${h(x.cat)}</small></div><input class="pi" type="number" min="0" value="${x.price}" data-f="price" data-id="${x.id}" aria-label="Fiyat"><label class="sw"><input type="checkbox" data-f="on" data-id="${x.id}" ${x.on!==false?'checked':''}>Satışta</label><button class="ghost" data-a="edit" data-id="${x.id}">Düzenle</button><button class="ghost" data-a="rm" data-id="${x.id}">Sil</button></div>`).join('');
@@ -119,7 +123,7 @@ function render(){
  else b=booting||live?'<p class="msg">Yükleniyor…</p>':!unlocked?vLock():r.v==='kasa'?vKasa():vAdmin();
  $('#app').innerHTML=(!booting&&!db?'<div class="demo">Demo modu: veriler paylaşılan bir veritabanına bağlı değil, yalnızca bu cihazda saklanır.</div>':'')+b;
  $('#modal').innerHTML=r.v==='menu'?vSheet():'';scrollTo(0,y);
- if(r.v==='admin'&&tab==='qr'&&canManage()&&unlocked)drawQR();seed()}
+ if(r.v==='admin'&&tab==='qr'&&canManage()&&unlocked)drawQR();seed();const nn=unlocked?Object.values(L.orders).filter(o=>o.st==='new').length:0;document.title=nn?'('+nn+') Yeni sipariş':info().name}
 const shrink=f=>new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,420/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);c.toBlob(r,'image/jpeg',.78)};i.src=URL.createObjectURL(f)});
 async function photo(f){const b=await shrink(f);if(assets)try{return(await assets.upload(b)).url}catch(e){}return new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result);x.readAsDataURL(b)})}
 const grab=()=>{const v=s=>$(s).value;E={...E,name:v('#e-n'),price:v('#e-p'),cat:v('#e-c'),desc:v('#e-d')}};
@@ -134,6 +138,7 @@ document.addEventListener('click',async e=>{
  else if(a==='send')send();
  else if(a==='unlock')unlock();
  else if(a==='out')auth.signOut();
+ else if(a==='snd')setSnd(!sndOn);
  else if(a==='shw')$('#pw').type=b.checked?'text':'password';
  else if(a==='fil'){fil=b.dataset.v;render()}
  else if(a==='tab'){tab=b.dataset.v;render()}
